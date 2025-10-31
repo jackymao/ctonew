@@ -1,204 +1,255 @@
 [
   {
-    "id": "zp7d1f5u9smx56o",
-    "name": "sites",
-    "type": "base",
-    "system": false,
-    "schema": [
-      {
-        "system": false,
-        "id": "fld_sites_name",
-        "name": "name",
-        "type": "text",
-        "required": true,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "min": 1,
-          "max": 255,
-          "pattern": ""
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_sites_slug",
-        "name": "slug",
-        "type": "text",
-        "required": false,
-        "presentable": false,
-        "unique": true,
-        "options": {
-          "min": null,
-          "max": 255,
-          "pattern": ""
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_sites_domain",
-        "name": "domain",
-        "type": "text",
-        "required": true,
-        "presentable": false,
-        "unique": true,
-        "options": {
-          "min": 1,
-          "max": 255,
-          "pattern": ""
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_sites_theme",
-        "name": "theme",
-        "type": "json",
-        "required": false,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "maxSize": 0
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_sites_logo",
-        "name": "logo",
-        "type": "file",
-        "required": false,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 5242880,
-          "mimeTypes": [],
-          "thumbs": []
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_sites_public_read",
-        "name": "public_read",
-        "type": "bool",
-        "required": false,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "default": true
-        }
-      }
-    ],
-    "indexes": [
-      "CREATE UNIQUE INDEX idx_sites_domain ON sites (domain)",
-      "CREATE UNIQUE INDEX idx_sites_slug ON sites (slug)"
-    ],
+    "id": "pbc_2001081480",
     "listRule": "public_read = true",
     "viewRule": "public_read = true",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
-    "options": {}
-  },
-  {
-    "id": "y1q2r3s4t5u6v7w",
-    "name": "pages",
+    "name": "sites",
     "type": "base",
-    "system": false,
-    "schema": [
+    "fields": [
       {
-        "system": false,
-        "id": "fld_pages_site",
-        "name": "site",
-        "type": "relation",
-        "required": true,
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
         "presentable": false,
-        "unique": false,
-        "options": {
-          "collectionId": "zp7d1f5u9smx56o",
-          "cascadeDelete": true,
-          "minSelect": null,
-          "maxSelect": 1,
-          "displayFields": []
-        }
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
       },
       {
-        "system": false,
-        "id": "fld_pages_path",
-        "name": "path",
-        "type": "text",
-        "required": true,
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text1579384326",
+        "max": 0,
+        "min": 0,
+        "name": "name",
+        "pattern": "",
         "presentable": false,
-        "unique": false,
-        "options": {
-          "min": 0,
-          "max": 512,
-          "pattern": ""
-        }
+        "primaryKey": false,
+        "required": true,
+        "system": false,
+        "type": "text"
       },
       {
-        "system": false,
-        "id": "fld_pages_title",
-        "name": "title",
-        "type": "text",
-        "required": true,
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2560465762",
+        "max": 0,
+        "min": 0,
+        "name": "slug",
+        "pattern": "",
         "presentable": false,
-        "unique": false,
-        "options": {
-          "min": 1,
-          "max": 255,
-          "pattern": ""
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_pages_content",
-        "name": "content",
-        "type": "text",
-        "required": true,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null,
-          "pattern": ""
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_pages_content_format",
-        "name": "content_format",
-        "type": "select",
-        "required": true,
-        "presentable": false,
-        "unique": false,
-        "options": {
-          "maxSelect": 1,
-          "values": [
-            "md",
-            "html"
-          ]
-        }
-      },
-      {
-        "system": false,
-        "id": "fld_pages_published",
-        "name": "published",
-        "type": "bool",
+        "primaryKey": false,
         "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2812878347",
+        "max": 0,
+        "min": 0,
+        "name": "domain",
+        "pattern": "",
         "presentable": false,
-        "unique": false,
-        "options": {
-          "default": false
-        }
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "json2541086472",
+        "maxSize": 0,
+        "name": "theme",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "file3834550803",
+        "maxSelect": 1,
+        "maxSize": 0,
+        "mimeTypes": [],
+        "name": "logo",
+        "presentable": false,
+        "protected": false,
+        "required": false,
+        "system": false,
+        "thumbs": [],
+        "type": "file"
+      },
+      {
+        "hidden": false,
+        "id": "bool3809084342",
+        "name": "public_read",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
       }
     ],
     "indexes": [
-      "CREATE UNIQUE INDEX idx_pages_site_path ON pages (site, path)"
+      "CREATE UNIQUE INDEX `idx_pnbcKWzW8g` ON `sites` (\n  `domain`,\n  `slug`\n)"
     ],
+    "system": false
+  },
+  {
+    "id": "pbc_3945946014",
     "listRule": "published = true",
     "viewRule": "published = true",
-    "createRule": null,
-    "updateRule": null,
-    "deleteRule": null,
-    "options": {}
+    "createRule": "",
+    "updateRule": "",
+    "deleteRule": "",
+    "name": "pages",
+    "type": "base",
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cascadeDelete": true,
+        "collectionId": "pbc_2001081480",
+        "hidden": false,
+        "id": "relation1766001124",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "site",
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "relation"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text190089999",
+        "max": 0,
+        "min": 0,
+        "name": "path",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text724990059",
+        "max": 0,
+        "min": 0,
+        "name": "title",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text4274335913",
+        "max": 0,
+        "min": 0,
+        "name": "content",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "select3062628979",
+        "maxSelect": 1,
+        "name": "content_format",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "select",
+        "values": [
+          "md",
+          "html"
+        ]
+      },
+      {
+        "hidden": false,
+        "id": "bool1748787223",
+        "name": "published",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_gIaJMJHjNC` ON `pages` (\n  `site`,\n  `path`\n)"
+    ],
+    "system": false
   }
 ]
