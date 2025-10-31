@@ -1,6 +1,9 @@
 <script lang="ts">
   import '../app.css';
   import { browser } from '$app/environment';
+  import { authenticated } from '$lib/stores/auth';
+  import { logout } from '$lib/pocketbase';
+  import { invalidateAll } from '$app/navigation';
   import type { LayoutData } from './$types';
 
   export let data: LayoutData;
@@ -13,6 +16,14 @@
   const textColor = (theme.textColor as string) ?? '#0f172a';
 
   const domain = browser ? window.location.host : data.host ?? '';
+
+  let showMenu = false;
+
+  function handleLogout() {
+    logout();
+    showMenu = false;
+    invalidateAll();
+  }
 </script>
 
 <svelte:head>
@@ -37,7 +48,19 @@
         </p>
       </div>
     </div>
-    <div class="domain">{domain}</div>
+    <div class="top-bar-actions">
+      <div class="domain">{domain}</div>
+      <nav class="nav-actions">
+        {#if $authenticated}
+          <a href="/new" class="btn btn-secondary">New Page</a>
+          <button class="btn btn-secondary" type="button" on:click={handleLogout}>
+            Log out
+          </button>
+        {:else}
+          <a href="/login" class="btn btn-primary">Editor Login</a>
+        {/if}
+      </nav>
+    </div>
   </header>
 
   <main>
@@ -117,10 +140,21 @@
     color: rgba(15, 23, 42, 0.6);
   }
 
+  .top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
   .domain {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     font-size: 0.875rem;
     color: rgba(15, 23, 42, 0.6);
+  }
+
+  .nav-actions {
+    display: flex;
+    gap: 0.5rem;
   }
 
   main {
@@ -150,6 +184,22 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 0.75rem;
+    }
+
+    .top-bar-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .nav-actions {
+      width: 100%;
+    }
+
+    .nav-actions .btn {
+      width: 100%;
+      justify-content: center;
     }
 
     .domain {

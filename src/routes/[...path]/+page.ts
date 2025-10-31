@@ -9,6 +9,7 @@ export const load: PageLoad = async ({ parent, params }) => {
 
   if (!site) {
     return {
+      site: null,
       page: null,
       pageError: siteError ?? 'Site could not be resolved for this domain.',
       requestedPath
@@ -18,6 +19,7 @@ export const load: PageLoad = async ({ parent, params }) => {
   const result = await fetchPageByPath(site.id, requestedPath);
 
   return {
+    site,
     page: result.data,
     pageError: result.error,
     requestedPath

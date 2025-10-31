@@ -1,6 +1,7 @@
 <script lang="ts">
   import { marked } from 'marked';
   import type { PageData } from './$types';
+  import { authenticated } from '$lib/stores/auth';
 
   marked.setOptions({
     breaks: true,
@@ -14,6 +15,7 @@
   $: content = data.page?.content;
   $: isMarkdown = data.page?.content_format === 'md';
   $: renderedContent = isMarkdown && content ? marked(content) : content ?? '';
+  $: editPath = data.requestedPath || 'index';
 </script>
 
 <svelte:head>
@@ -23,7 +25,14 @@
 <article class="page">
   {#if data.page}
     <header class="page-header">
-      <h1>{data.page.title}</h1>
+      <div class="page-header-content">
+        <h1>{data.page.title}</h1>
+        {#if $authenticated}
+          <div class="page-actions">
+            <a href="/edit/{editPath}" class="btn btn-secondary">Edit Page</a>
+          </div>
+        {/if}
+      </div>
     </header>
     <div class="page-content">
       {@html renderedContent}
@@ -34,6 +43,13 @@
       <p>{data.pageError}</p>
       {#if data.requestedPath}
         <p>Requested path: <code>/{data.requestedPath}</code></p>
+      {/if}
+      {#if $authenticated && data.site}
+        <p>
+          <a href="/new?path={encodeURIComponent(data.requestedPath)}" class="btn btn-primary"
+            >Create this page</a
+          >
+        </p>
       {/if}
     </div>
   {:else}
@@ -54,10 +70,23 @@
     padding-bottom: 1rem;
   }
 
+  .page-header-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+
   .page-header h1 {
     margin: 0;
     font-size: 2.5rem;
     line-height: 1.1;
+  }
+
+  .page-actions {
+    display: flex;
+    gap: 0.75rem;
   }
 
   .page-content {

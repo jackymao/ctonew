@@ -8,6 +8,7 @@ A multi-tenant, domain-based wiki/knowledge base built with SvelteKit (Svelte 5,
 - 📚 **Dynamic wiki pages**: Catch-all route renderer for flexible page paths
 - 🎨 **Theme support**: Per-site theming via JSON configuration
 - 📝 **Markdown & HTML**: Support for both Markdown and HTML content formats
+- ✏️ **Editor dashboards**: Login flow, new page creation, editing, and deletion directly from the SPA
 - 🚀 **Static deployment**: Built with SvelteKit adapter-static for CDN hosting
 - 🔒 **PocketBase backend**: Leverage PocketBase for database, auth, and file storage
 
@@ -81,6 +82,28 @@ Preview the production build locally:
 ```bash
 pnpm preview
 ```
+
+## Editor Workflow
+
+The SPA ships with a lightweight editorial UI built directly into the frontend. All requests are
+made to PocketBase from the browser, so you can manage content without a separate admin panel
+while still respecting PocketBase collection rules.
+
+- **Login** – Visit `/login` and authenticate with a PocketBase user account (uses the native
+  `users` collection). Successful login stores the auth token locally via the PocketBase JS client.
+- **Create** – Use `/new` (or the “New Page” link in the top bar) to create content for the current
+  site. You can provide the URL path, choose Markdown or HTML, and control the published flag.
+- **Edit** – When viewing a page while authenticated, an “Edit Page” button appears. It links to
+  `/edit/{path}` where you can update metadata, content, format, and publish status.
+- **Delete** – The edit screen provides a guarded delete flow, allowing you to remove the current
+  page once confirmed.
+- **Drafts** – Toggle the “Publish page” checkbox on either the create or edit screens to control
+  visibility. Unpublished pages remain inaccessible to anonymous visitors (assuming PocketBase
+  rules enforce `published == true`).
+
+The authenticated navigation items automatically appear in the site header after login and revert
+once you sign out. Because the app is entirely client-rendered, ensure CORS rules on PocketBase
+allow requests from your deployed domains.
 
 ## PocketBase Schema
 
