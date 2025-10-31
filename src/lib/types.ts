@@ -29,3 +29,12 @@ export interface Page {
   created?: string;
   updated?: string;
 }
+
+export type FormValues<T extends string = string> = Record<T, string>;
+
+export type FormErrors<T extends string = string> = Partial<Record<T, string>>;
+
+export interface FormState<T extends string = string> {
+  values: FormValues<T>;
+  errors: FormErrors<T>;
+}

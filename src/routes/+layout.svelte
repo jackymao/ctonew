@@ -57,6 +57,7 @@
             Log out
           </button>
         {:else}
+          <a href="/register" class="register-link">Register</a>
           <a href="/login" class="btn btn-primary">Editor Login</a>
         {/if}
       </nav>
@@ -154,7 +155,23 @@
 
   .nav-actions {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .register-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(15, 23, 42, 0.7);
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
+  }
+
+  .register-link:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
   }
 
   main {
@@ -195,6 +212,15 @@
 
     .nav-actions {
       width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .register-link {
+      width: 100%;
+      text-align: center;
+      padding: 0.75rem 1rem;
+      background: rgba(37, 99, 235, 0.05);
     }
 
     .nav-actions .btn {

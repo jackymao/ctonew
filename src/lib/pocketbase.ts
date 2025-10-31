@@ -200,6 +200,8 @@ export function getClient(): PocketBase | null {
   return ensureClient();
 }
 
+export const pb = getClient();
+
 export function authToken(): string | null {
   const pb = ensureClient();
   return pb ? pb.authStore.token : null;

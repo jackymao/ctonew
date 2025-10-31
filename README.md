@@ -9,13 +9,14 @@ A multi-tenant, domain-based wiki/knowledge base built with SvelteKit (Svelte 5,
 - 🎨 **Theme support**: Per-site theming via JSON configuration
 - 📝 **Markdown & HTML**: Support for both Markdown and HTML content formats
 - ✏️ **Editor dashboards**: Login flow, new page creation, editing, and deletion directly from the SPA
+- 👤 **Self-service registration**: `/register` route for creating PocketBase users with optional email verification
 - 🚀 **Static deployment**: Built with SvelteKit adapter-static for CDN hosting
 - 🔒 **PocketBase backend**: Leverage PocketBase for database, auth, and file storage
 
 ## Tech Stack
 
 - **Frontend**: SvelteKit 2, Svelte 5, TypeScript
-- **Backend**: PocketBase 0.26+
+- **Backend**: PocketBase 0.30+
 - **Package Manager**: pnpm
 - **Markdown**: marked
 - **Deployment**: Static SPA with 200.html fallback
@@ -104,6 +105,66 @@ while still respecting PocketBase collection rules.
 The authenticated navigation items automatically appear in the site header after login and revert
 once you sign out. Because the app is entirely client-rendered, ensure CORS rules on PocketBase
 allow requests from your deployed domains.
+
+## User Registration
+
+The SPA includes a self-service registration feature to let new users sign up directly from the frontend.
+
+### How it Works
+
+- **Route**: Visit `/register` to display the registration form
+- **Fields**: Users provide their name, email, password, and password confirmation
+- **Validation**: Client-side validation ensures:
+  - All required fields are filled
+  - Email is valid
+  - Password is at least 8 characters long
+  - Passwords match
+- **Backend**: On submit, the app calls `pb.collection('users').create()` to create a new user record in PocketBase
+- **Email Verification** (optional): If your PocketBase instance is configured to require email verification, the app automatically calls `pb.collection('users').requestVerification()` after creating the account
+- **Success State**: After successful registration, the user sees a confirmation message and is prompted to either:
+  - Check their email for a verification link (if verification is enabled)
+  - Sign in immediately with their new credentials (if verification is not required)
+
+### PocketBase Requirements
+
+To enable user registration, you must configure PocketBase's `users` collection:
+
+1. **Enable "Email/Password" Auth**:
+   - In PocketBase Admin UI, go to **Collections** → **users** → **API rules**
+   - Ensure the "Auth with password" option is enabled
+
+2. **Enable Email Verification** (optional):
+   - Go to **Settings** → **Mail settings**
+   - Configure your SMTP server (e.g., Gmail, SendGrid, Mailgun)
+   - In **Collections** → **users**, enable "Require email verification"
+   - This triggers a verification email on registration
+
+3. **Create Rules** (if needed):
+   - By default, PocketBase allows user creation
+   - Adjust the `users` collection's **create rules** if you need to restrict or extend registration logic
+
+### Testing Email Verification
+
+During local development, PocketBase logs emails to the console (no SMTP required). Look for the verification link in the PocketBase server logs:
+
+```
+[Mailer] Email sent: Verify your email...
+```
+
+Click the link to complete verification. For production, configure a real SMTP service.
+
+### UI Flow
+
+- **Register Link**: When not authenticated, a "Register" link appears in the site header next to "Editor Login"
+- **Form Validation**: Errors are displayed inline per field and as a general message
+- **Success Message**: After successful registration, users see a confirmation message with next steps
+- **Back to Login**: A "Back to login" button lets users return to the login screen
+
+### Error Handling
+
+- **Field-level errors**: PocketBase validation errors (e.g., email already exists, invalid format) are displayed beneath the relevant input
+- **General errors**: Network issues or unexpected failures show a general error message
+- **Graceful degradation**: If PocketBase is not configured, the form displays a friendly notice
 
 ## Importing PocketBase schema
 
@@ -313,7 +374,7 @@ Alternatively, use a reverse proxy (e.g., Caddy, Nginx) to handle CORS headers.
 - **Content safety**: Ensure content is sanitized if allowing user-generated HTML
 - **Authentication**: Extend PocketBase client with auth for protected pages/admin features
 - **SEO**: For better SEO, consider server-side rendering or pre-rendering known paths
-- **PocketBase version**: The project targets PocketBase `0.26.x`, the latest version available at the time of writing. Update the dependency when newer releases (e.g., `0.30.x`) become available.
+- **PocketBase version**: The project targets PocketBase `0.30.x`. Update the dependency alongside the app when newer releases become available.
 
 ## Troubleshooting
 
