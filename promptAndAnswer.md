@@ -161,3 +161,7 @@ Created a full SvelteKit 2 + Svelte 5 application with:
   - promptAndAnswer.md created
 
 The application is production-ready and can be deployed to any static hosting provider (Netlify, Vercel, Cloudflare Pages, etc.) with proper PocketBase CORS configuration.
+
+## Follow-up Task: PocketBase schema import
+- Added `pocketbase-schema.json` defining `sites` and `pages` collections with rules and indexes ready for PocketBase 0.30+
+- Documented schema import steps, CORS reminders, and initial record setup in README

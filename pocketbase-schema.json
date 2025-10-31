@@ -1,0 +1,204 @@
+[
+  {
+    "id": "zp7d1f5u9smx56o",
+    "name": "sites",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "fld_sites_name",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_sites_slug",
+        "name": "slug",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": true,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_sites_domain",
+        "name": "domain",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": true,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_sites_theme",
+        "name": "theme",
+        "type": "json",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSize": 0
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_sites_logo",
+        "name": "logo",
+        "type": "file",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": [],
+          "thumbs": []
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_sites_public_read",
+        "name": "public_read",
+        "type": "bool",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "default": true
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX idx_sites_domain ON sites (domain)",
+      "CREATE UNIQUE INDEX idx_sites_slug ON sites (slug)"
+    ],
+    "listRule": "public_read = true",
+    "viewRule": "public_read = true",
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  },
+  {
+    "id": "y1q2r3s4t5u6v7w",
+    "name": "pages",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "fld_pages_site",
+        "name": "site",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "zp7d1f5u9smx56o",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_pages_path",
+        "name": "path",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": 512,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_pages_title",
+        "name": "title",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_pages_content",
+        "name": "content",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_pages_content_format",
+        "name": "content_format",
+        "type": "select",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "md",
+            "html"
+          ]
+        }
+      },
+      {
+        "system": false,
+        "id": "fld_pages_published",
+        "name": "published",
+        "type": "bool",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "default": false
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX idx_pages_site_path ON pages (site, path)"
+    ],
+    "listRule": "published = true",
+    "viewRule": "published = true",
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  }
+]

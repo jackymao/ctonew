@@ -105,6 +105,52 @@ The authenticated navigation items automatically appear in the site header after
 once you sign out. Because the app is entirely client-rendered, ensure CORS rules on PocketBase
 allow requests from your deployed domains.
 
+## Importing PocketBase schema
+
+This repository includes a ready-to-import PocketBase schema file at the root: `pocketbase-schema.json`.
+
+### Import Steps
+
+1. **Start PocketBase** (version 0.30+):
+   ```bash
+   ./pocketbase serve
+   ```
+
+2. **Access PocketBase Admin UI**: Navigate to `http://localhost:8090/_/` in your browser and log in (or create an admin account if first run)
+
+3. **Import the schema**:
+   - Go to **Settings** → **Import collections**
+   - Click "Load from JSON file" or paste the contents of `pocketbase-schema.json`
+   - Review the collections (`sites` and `pages`) and click **Import**
+
+4. **Verify**: Check that both `sites` and `pages` collections appear in the Collections section with the proper fields, rules, and indexes
+
+### CORS Configuration
+
+Since this is a client-side SPA, you **must** configure CORS in PocketBase to allow requests from your frontend domain(s):
+
+1. In PocketBase Admin UI, go to **Settings** → **Application**
+2. Under **API rules**, add your allowed origins:
+   - Development: `http://localhost:5173`
+   - Production: `https://yourdomain.com`, `https://www.yourdomain.com`, etc.
+3. Save the settings
+
+Alternatively, use a reverse proxy (Caddy, Nginx, Cloudflare Workers) to handle CORS headers.
+
+### Creating Your First Site
+
+After importing the schema, create a site record:
+
+1. Go to **Collections** → **sites** → **New record**
+2. Fill in:
+   - **name**: "My Knowledge Base"
+   - **domain**: `localhost:5173` (or your actual domain)
+   - **slug**: `my-kb` (optional, URL-friendly identifier)
+   - **public_read**: checked (true)
+3. Click **Create**
+
+Now you can create pages for this site in the `pages` collection.
+
 ## PocketBase Schema
 
 This application expects the following PocketBase collections:
