@@ -126,11 +126,11 @@
   },
   {
     "id": "pbc_3945946014",
-    "listRule": "published = true",
-    "viewRule": "published = true",
-    "createRule": "",
-    "updateRule": "",
-    "deleteRule": "",
+    "listRule": "owner = @request.auth.id",
+    "viewRule": "owner = @request.auth.id",
+    "createRule": "@request.auth.id != \"\" && owner = @request.auth.id",
+    "updateRule": "owner = @request.auth.id",
+    "deleteRule": "owner = @request.auth.id",
     "name": "pages",
     "type": "base",
     "fields": [
@@ -149,6 +149,19 @@
         "type": "text"
       },
       {
+        "cascadeDelete": false,
+        "collectionId": "_pb_users_auth_",
+        "hidden": false,
+        "id": "relation8888888888",
+        "maxSelect": 1,
+        "minSelect": 1,
+        "name": "owner",
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "relation"
+      },
+      {
         "cascadeDelete": true,
         "collectionId": "pbc_2001081480",
         "hidden": false,
@@ -157,7 +170,7 @@
         "minSelect": 0,
         "name": "site",
         "presentable": false,
-        "required": true,
+        "required": false,
         "system": false,
         "type": "relation"
       },
@@ -248,7 +261,166 @@
       }
     ],
     "indexes": [
-      "CREATE UNIQUE INDEX `idx_gIaJMJHjNC` ON `pages` (\n  `site`,\n  `path`\n)"
+      "CREATE UNIQUE INDEX `idx_gIaJMJHjNC` ON `pages` (\n  `site`,\n  `path`\n)",
+      "CREATE UNIQUE INDEX `idx_ownerPath` ON `pages` (\n  `owner`,\n  `path`\n)"
+    ],
+    "system": false
+  },
+  {
+    "id": "_pb_users_auth_",
+    "listRule": "id = @request.auth.id",
+    "viewRule": "id = @request.auth.id",
+    "createRule": "",
+    "updateRule": "id = @request.auth.id",
+    "deleteRule": "id = @request.auth.id",
+    "name": "users",
+    "type": "auth",
+    "authRule": "",
+    "authAlert": {
+      "enabled": false,
+      "emailTemplate": {
+        "body": "",
+        "subject": ""
+      }
+    },
+    "confirmEmailChangeTemplate": {
+      "body": "",
+      "subject": ""
+    },
+    "resetPasswordTemplate": {
+      "body": "",
+      "subject": ""
+    },
+    "verifyTemplate": {
+      "body": "",
+      "subject": ""
+    },
+    "oauth2": {
+      "enabled": false,
+      "mappedFields": {
+        "avatarURL": "",
+        "id": "",
+        "name": "",
+        "username": ""
+      }
+    },
+    "passwordAuth": {
+      "enabled": true,
+      "identityFields": [
+        "email"
+      ]
+    },
+    "mfa": {
+      "enabled": false,
+      "rule": "",
+      "duration": 0
+    },
+    "otp": {
+      "enabled": false,
+      "emailTemplate": {
+        "body": "",
+        "subject": ""
+      },
+      "duration": 0
+    },
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cost": 10,
+        "hidden": true,
+        "id": "password901924565",
+        "max": 0,
+        "min": 8,
+        "name": "password",
+        "pattern": "",
+        "presentable": false,
+        "required": true,
+        "system": true,
+        "type": "password"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2504183744",
+        "max": 0,
+        "min": 0,
+        "name": "name",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "exceptDomains": [],
+        "hidden": false,
+        "id": "email3885137012",
+        "name": "email",
+        "onlyDomains": [],
+        "presentable": false,
+        "required": true,
+        "system": true,
+        "type": "email"
+      },
+      {
+        "hidden": false,
+        "id": "bool1547992806",
+        "name": "verified",
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "bool"
+      },
+      {
+        "hidden": false,
+        "id": "text3475244588",
+        "max": 0,
+        "min": 3,
+        "name": "username",
+        "pattern": "^[a-zA-Z0-9_-]+$",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_username` ON `users` (`username`)"
     ],
     "system": false
   }

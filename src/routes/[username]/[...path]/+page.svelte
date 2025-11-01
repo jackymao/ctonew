@@ -1,8 +1,18 @@
 <script lang="ts">
   import { marked } from 'marked';
   import type { PageData } from './$types';
-  import { authenticated } from '$lib/stores/auth';
   import { getClient } from '$lib/pocketbase';
+
+  export let data: PageData;
+
+  const pb = getClient();
+
+  $: currentUserId = pb?.authStore.model?.id ?? '';
+  $: canEdit = Boolean(currentUserId && data.namespaceUser && data.namespaceUser.id === currentUserId);
+  $: content = data.page?.content;
+  $: isMarkdown = data.page?.content_format === 'md';
+  $: renderedContent = isMarkdown && content ? marked(content) : content ?? '';
+  $: editPath = data.requestedPath || 'index';
 
   marked.setOptions({
     breaks: true,
@@ -10,33 +20,23 @@
     headerIds: true,
     mangle: false
   });
-
-  export let data: PageData;
-
-  const pb = getClient();
-
-  $: currentUserId = pb?.authStore.model?.id ?? '';
-  $: pageOwnerId = data.page?.owner ?? '';
-  $: canEdit = Boolean(currentUserId && pageOwnerId && currentUserId === pageOwnerId);
-  $: content = data.page?.content;
-  $: isMarkdown = data.page?.content_format === 'md';
-  $: renderedContent = isMarkdown && content ? marked(content) : content ?? '';
-  $: editPath = data.requestedPath || 'index';
 </script>
 
 <svelte:head>
-  <title>{data.page?.title ?? 'Page'}</title>
+  <title>{data.page?.title ?? `${data.username}'s wiki`}</title>
 </svelte:head>
 
 <article class="page">
   {#if data.page}
     <header class="page-header">
       <div class="page-header-content">
-        <h1>{data.page.title}</h1>
+        <div>
+          <h1>{data.page.title}</h1>
+          <p class="namespace">@{data.namespaceUser?.username ?? data.username}</p>
+        </div>
         {#if canEdit}
           <div class="page-actions">
-            <a href="/new" class="btn btn-secondary">New Page</a>
-            <a href="/edit/{editPath}" class="btn btn-secondary">Edit Page</a>
+            <a href="/{data.username}/edit/{editPath}" class="btn btn-secondary">Edit Page</a>
           </div>
         {/if}
       </div>
@@ -51,11 +51,11 @@
       {#if data.requestedPath}
         <p>Requested path: <code>/{data.requestedPath}</code></p>
       {/if}
-      {#if $authenticated && data.site}
+      {#if canEdit}
         <p>
-          <a href="/new?path={encodeURIComponent(data.requestedPath)}" class="btn btn-primary"
-            >Create this page</a
-          >
+          <a href="/{data.username}/new?path={encodeURIComponent(data.requestedPath)}" class="btn btn-primary">
+            Create this page
+          </a>
         </p>
       {/if}
     </div>
@@ -89,6 +89,11 @@
     margin: 0;
     font-size: 2.5rem;
     line-height: 1.1;
+  }
+
+  .namespace {
+    margin: 0.35rem 0 0;
+    color: rgba(15, 23, 42, 0.6);
   }
 
   .page-actions {
@@ -163,12 +168,5 @@
     padding-left: 1rem;
     margin: 1.25rem 0;
     color: rgba(15, 23, 42, 0.7);
-  }
-
-  code {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    background: rgba(15, 23, 42, 0.05);
-    padding: 0.1rem 0.25rem;
-    border-radius: 0.35rem;
   }
 </style>

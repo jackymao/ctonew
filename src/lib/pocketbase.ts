@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import PocketBase, { ClientResponseError, type RecordModel } from 'pocketbase';
-import type { Page, Site, SiteTheme } from './types';
+import type { Page, Site, SiteTheme, User } from './types';
 
 export type FetchResult<T> = {
   data: T | null;
@@ -38,12 +38,20 @@ type SiteRecord = RecordModel & {
 };
 
 type PageRecord = RecordModel & {
-  site: string | RecordModel;
+  owner: string | RecordModel;
+  site?: string | RecordModel;
   path: string;
   title: string;
   content: string;
   content_format: 'md' | 'html';
   published: boolean;
+};
+
+type UserRecord = RecordModel & {
+  email: string;
+  name?: string;
+  username?: string;
+  verified: boolean;
 };
 
 function parseTheme(theme: unknown): SiteTheme | undefined {
@@ -78,11 +86,14 @@ function mapSite(record: SiteRecord, pb: PocketBase): Site {
 }
 
 function mapPage(record: PageRecord): Page {
+  const ownerRelation = record.owner;
+  const ownerId = typeof ownerRelation === 'string' ? ownerRelation : ownerRelation?.id ?? '';
   const siteRelation = record.site;
-  const siteId = typeof siteRelation === 'string' ? siteRelation : siteRelation?.id ?? '';
+  const siteId = typeof siteRelation === 'string' ? siteRelation : siteRelation?.id ?? undefined;
 
   return {
     id: record.id,
+    owner: ownerId,
     site: siteId,
     path: record.path,
     title: record.title,
@@ -163,6 +174,13 @@ export async function fetchPageByPath(siteId: string, path: string): Promise<Fet
           error: 'Page not found.'
         };
       }
+
+      if (error.status === 403) {
+        return {
+          data: null,
+          error: 'You do not have access to this page.'
+        };
+      }
     }
 
     console.error('Failed to fetch page by path', error);
@@ -176,7 +194,7 @@ export async function fetchPageByPath(siteId: string, path: string): Promise<Fet
 async function getPage(pb: PocketBase, siteId: string, path: string): Promise<PageRecord | null> {
   const sanitizedSiteId = escapeFilterValue(siteId);
   const sanitizedPath = escapeFilterValue(path);
-  const filter = `site = "${sanitizedSiteId}" && path = "${sanitizedPath}" && published = true`;
+  const filter = `site = "${sanitizedSiteId}" && path = "${sanitizedPath}"`;
   try {
     return await pb.collection('pages').getFirstListItem<PageRecord>(filter);
   } catch (error) {
@@ -252,7 +270,7 @@ export function logout(): void {
 }
 
 export async function createPage(data: {
-  site: string;
+  site?: string | null;
   path: string;
   title: string;
   content: string;
@@ -274,8 +292,21 @@ export async function createPage(data: {
     };
   }
 
+  const ownerId = pb.authStore.model?.id;
+  if (!ownerId) {
+    return {
+      data: null,
+      error: 'Authenticated user missing.'
+    };
+  }
+
   try {
-    const record = await pb.collection('pages').create<PageRecord>(data);
+    const payload = {
+      ...data,
+      owner: ownerId
+    };
+
+    const record = await pb.collection('pages').create<PageRecord>(payload);
     return { data: mapPage(record) };
   } catch (error) {
     console.error('Failed to create page', error);
@@ -300,6 +331,7 @@ export async function updatePage(
     content?: string;
     content_format?: 'md' | 'html';
     published?: boolean;
+    site?: string | null;
   }
 ): Promise<FetchResult<Page>> {
   const pb = ensureClient();
@@ -317,8 +349,21 @@ export async function updatePage(
     };
   }
 
+  const ownerId = pb.authStore.model?.id;
+  if (!ownerId) {
+    return {
+      data: null,
+      error: 'Authenticated user missing.'
+    };
+  }
+
   try {
-    const record = await pb.collection('pages').update<PageRecord>(id, data);
+    const payload = {
+      ...data,
+      owner: ownerId
+    };
+
+    const record = await pb.collection('pages').update<PageRecord>(id, payload);
     return { data: mapPage(record) };
   } catch (error) {
     console.error('Failed to update page', error);
@@ -455,6 +500,183 @@ export async function fetchPageForEdit(
     return {
       data: null,
       error: 'Failed to fetch page. Please try again.'
+    };
+  }
+}
+
+export async function getUserByUsername(username: string): Promise<FetchResult<User>> {
+  const pb = ensureClient();
+  if (!pb) {
+    return {
+      data: null,
+      error: 'PocketBase client not configured.'
+    };
+  }
+
+  try {
+    const sanitizedUsername = escapeFilterValue(username);
+    const record = await pb
+      .collection('users')
+      .getFirstListItem<UserRecord>(`username = "${sanitizedUsername}"`);
+    
+    return {
+      data: {
+        id: record.id,
+        email: record.email,
+        name: record.name,
+        username: record.username,
+        verified: record.verified,
+        created: record.created,
+        updated: record.updated
+      }
+    };
+  } catch (error) {
+    if (error instanceof ClientResponseError && error.status === 404) {
+      return {
+        data: null,
+        error: `User "${username}" not found.`
+      };
+    }
+
+    console.error('Failed to fetch user by username', error);
+    return {
+      data: null,
+      error: 'Unable to load user details. Please try again later.'
+    };
+  }
+}
+
+export async function getPageByOwnerAndPath(ownerId: string, path: string): Promise<FetchResult<Page>> {
+  const pb = ensureClient();
+  if (!pb) {
+    return {
+      data: null,
+      error: 'PocketBase client not configured.'
+    };
+  }
+
+  const normalized = normalizePath(path);
+
+  try {
+    const sanitizedOwnerId = escapeFilterValue(ownerId);
+    const sanitizedPath = escapeFilterValue(normalized);
+    const filter = `owner = "${sanitizedOwnerId}" && path = "${sanitizedPath}"`;
+    const record = await pb.collection('pages').getFirstListItem<PageRecord>(filter);
+    return { data: mapPage(record) };
+  } catch (error) {
+    if (error instanceof ClientResponseError) {
+      if (error.status === 404) {
+        if (!normalized) {
+          try {
+            const sanitizedOwnerId = escapeFilterValue(ownerId);
+            const fallback = await pb
+              .collection('pages')
+              .getFirstListItem<PageRecord>(`owner = "${sanitizedOwnerId}" && path = "index"`);
+            return { data: mapPage(fallback) };
+          } catch (fallbackError) {
+            if (fallbackError instanceof ClientResponseError && fallbackError.status === 404) {
+              return {
+                data: null,
+                error: 'Page not found.'
+              };
+            }
+            throw fallbackError;
+          }
+        }
+
+        return {
+          data: null,
+          error: 'Page not found.'
+        };
+      }
+
+      if (error.status === 403) {
+        return {
+          data: null,
+          error: 'You do not have access to this page.'
+        };
+      }
+    }
+
+    console.error('Failed to fetch page by owner and path', error);
+    return {
+      data: null,
+      error: 'Unable to load page content. Please try again later.'
+    };
+  }
+}
+
+export async function listPagesByOwner(ownerId: string): Promise<FetchResult<Page[]>> {
+  const pb = ensureClient();
+  if (!pb) {
+    return {
+      data: null,
+      error: 'PocketBase client not configured.'
+    };
+  }
+
+  try {
+    const sanitizedOwnerId = escapeFilterValue(ownerId);
+    const filter = `owner = "${sanitizedOwnerId}"`;
+    const records = await pb.collection('pages').getFullList<PageRecord>({
+      filter,
+      sort: 'path'
+    });
+    
+    return {
+      data: records.map(mapPage)
+    };
+  } catch (error) {
+    console.error('Failed to list pages by owner', error);
+    return {
+      data: null,
+      error: 'Unable to load pages. Please try again later.'
+    };
+  }
+}
+
+export async function updateUsername(username: string): Promise<FetchResult<User>> {
+  const pb = ensureClient();
+  if (!pb || !pb.authStore.isValid) {
+    return {
+      data: null,
+      error: 'You must be logged in.'
+    };
+  }
+
+  try {
+    const userId = pb.authStore.model?.id;
+    if (!userId) {
+      return {
+        data: null,
+        error: 'User ID not found.'
+      };
+    }
+
+    const record = await pb.collection('users').update<UserRecord>(userId, { username });
+    
+    return {
+      data: {
+        id: record.id,
+        email: record.email,
+        name: record.name,
+        username: record.username,
+        verified: record.verified,
+        created: record.created,
+        updated: record.updated
+      }
+    };
+  } catch (error) {
+    console.error('Failed to update username', error);
+    if (error instanceof ClientResponseError) {
+      return {
+        data: null,
+        error: error.message || 'Failed to update username.'
+      };
+    }
+    return {
+      data: null,
+      error: 'Failed to update username. Please try again.'
     };
   }
 }

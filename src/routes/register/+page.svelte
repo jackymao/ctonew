@@ -128,6 +128,10 @@
       email = '';
       password = '';
       passwordConfirm = '';
+
+      setTimeout(() => {
+        goto('/settings?redirect=/');
+      }, 1500);
     } catch (error) {
       if (error instanceof ClientResponseError) {
         const fieldErrors: FormErrors<RegisterField> = {};

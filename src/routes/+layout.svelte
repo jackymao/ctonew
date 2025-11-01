@@ -2,7 +2,7 @@
   import '../app.css';
   import { browser } from '$app/environment';
   import { authenticated } from '$lib/stores/auth';
-  import { logout } from '$lib/pocketbase';
+  import { logout, pb } from '$lib/pocketbase';
   import { invalidateAll } from '$app/navigation';
   import type { LayoutData } from './$types';
 
@@ -52,7 +52,12 @@
       <div class="domain">{domain}</div>
       <nav class="nav-actions">
         {#if $authenticated}
-          <a href="/new" class="btn btn-secondary">New Page</a>
+          {#if pb?.authStore.model?.username}
+            <a href="/{pb.authStore.model.username}" class="btn btn-secondary">My Wiki</a>
+          {:else}
+            <a href="/settings" class="btn btn-secondary">Set Username</a>
+          {/if}
+          <a href="/settings" class="register-link">Settings</a>
           <button class="btn btn-secondary" type="button" on:click={handleLogout}>
             Log out
           </button>

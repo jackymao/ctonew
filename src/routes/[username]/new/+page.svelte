@@ -1,7 +1,7 @@
 <script lang="ts">
+  import type { PageData } from './$types';
   import { goto } from '$app/navigation';
   import { createPage } from '$lib/pocketbase';
-  import type { PageData } from './$types';
 
   export let data: PageData;
 
@@ -20,7 +20,7 @@
     const normalizedPath = path.trim().replace(/^\/+|\/+$/g, '');
 
     const result = await createPage({
-      site: data.site?.id,
+      site: null,
       path: normalizedPath || '',
       title: title.trim(),
       content: content.trim(),
@@ -30,7 +30,7 @@
 
     if (result.data) {
       const pagePath = normalizedPath || 'index';
-      goto(`/${pagePath}`);
+      goto(`/${data.username}/${pagePath}`);
     } else {
       error = result.error || 'Failed to create page';
       saving = false;
@@ -44,7 +44,7 @@
 
 <div class="page-form">
   <h1>Create New Page</h1>
-  <p class="subtitle">Add a new page to {data.site?.name ?? 'the site'}</p>
+  <p class="subtitle">Add a new page to your personal wiki</p>
 
   {#if error}
     <div class="error">
@@ -57,8 +57,7 @@
       <label for="path">
         Page Path
         <small>
-          URL path for this page (e.g., "about", "docs/guide"). Leave empty or use "index" for the
-          homepage.
+          URL path for this page (e.g., "about", "projects"). Leave empty or use "index" for the homepage.
         </small>
       </label>
       <input
@@ -80,7 +79,7 @@
         bind:value={title}
         required
         disabled={saving}
-        placeholder="Welcome to our site"
+        placeholder="Welcome to my wiki"
       />
     </div>
 
@@ -115,7 +114,7 @@
     <div class="form-group checkbox-group">
       <input id="published" type="checkbox" bind:checked={published} disabled={saving} />
       <label for="published">
-        Publish page (make it visible to visitors)
+        Publish page (make it visible to you when browsing)
       </label>
     </div>
 
@@ -123,7 +122,7 @@
       <button type="submit" class="btn btn-primary" disabled={saving}>
         {saving ? 'Creating...' : 'Create Page'}
       </button>
-      <a href="/" class="btn btn-secondary">Cancel</a>
+      <a href="/{data.username}" class="btn btn-secondary">Cancel</a>
     </div>
   </form>
 </div>
