@@ -20,12 +20,23 @@ export interface Site {
 
 export interface Page {
   id: string;
-  site: string;
+  owner: string;
+  site?: string;
   path: string;
   title: string;
   content: string;
   content_format: 'md' | 'html';
   published: boolean;
+  created?: string;
+  updated?: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  username?: string;
+  verified: boolean;
   created?: string;
   updated?: string;
 }

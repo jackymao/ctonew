@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { login } from '$lib/pocketbase';
+  import { login, getClient } from '$lib/pocketbase';
   import { authenticated } from '$lib/stores/auth';
 
   let email = '';
@@ -16,7 +16,14 @@
 
     if (result.data) {
       authenticated.check();
-      goto('/');
+      const pb = getClient();
+      const username = pb?.authStore.model?.username;
+      
+      if (username) {
+        goto(`/${username}`);
+      } else {
+        goto('/settings?redirect=/');
+      }
     } else {
       error = result.error || 'Login failed';
     }

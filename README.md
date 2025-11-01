@@ -4,7 +4,9 @@ A multi-tenant, domain-based wiki/knowledge base built with SvelteKit (Svelte 5,
 
 ## Features
 
-- 🏢 **Multi-tenant architecture**: Resolve sites by domain at runtime
+- 👤 **Per-user wiki namespaces**: Each user gets their own wiki at `/{username}/...`
+- 🔒 **Owner-only access**: Strict visibility controls - only page owners can view and edit their own pages
+- 🏢 **Multi-tenant architecture**: Resolve sites by domain at runtime (for custom domain use-cases)
 - 📚 **Dynamic wiki pages**: Catch-all route renderer for flexible page paths
 - 🎨 **Theme support**: Per-site theming via JSON configuration
 - 📝 **Markdown & HTML**: Support for both Markdown and HTML content formats
@@ -247,31 +249,37 @@ public_read = true
 
 ### Collection: `pages`
 
-Stores page content for each site.
+Stores page content for each user or optional custom domain.
 
 **Fields**:
-- `site` (relation to `sites`, required): The site this page belongs to
+- `owner` (relation to `users`, required): The authenticated user that owns the page
+- `site` (relation to `sites`, optional): The custom-domain site this page belongs to (if any)
 - `path` (text, required): URL path for the page (e.g., `""` for root, `"about"`, `"docs/guide"`)
 - `title` (text, required): Page title
 - `content` (text/editor, required): Page content (Markdown or HTML)
 - `content_format` (select, required): Format of content (`md` or `html`)
-- `published` (bool, default: false): Whether page is published
+- `published` (bool, default: false): Optional published flag (owner-only views ignore this flag for drafts)
 
 **Indexes**:
-- Unique index on `site + path` to ensure one page per path per site
+- Unique index on `owner + path` to prevent duplicates within a personal wiki
+- Unique index on `site + path` so custom domains still resolve a single page per path
 
 **List/View Rules**:
 ```javascript
-// Only show published pages
-published = true
+owner = @request.auth.id
 ```
 
-**Write Rules**: Restrict to authenticated editors/admins only
+**Write Rules**:
+```javascript
+@request.auth.id != "" && owner = @request.auth.id // create
+owner = @request.auth.id                           // update/delete
+```
 
 **Example Record**:
 ```json
 {
-  "site": "RELATION_ID",
+  "owner": "RELATION_ID",
+  "site": "RELATION_ID", // optional when using custom domains
   "path": "index",
   "title": "Welcome",
   "content": "# Welcome\n\nThis is the homepage.",
@@ -280,19 +288,49 @@ published = true
 }
 ```
 
+### Collection: `users`
+
+Standard PocketBase auth collection with one additional field:
+
+**Fields**:
+- `username` (text, unique, optional): URL-safe username for personal wiki namespace (e.g., `"alice"` → `/{alice}/...`)
+- `email`, `password`, `name`, `verified` (standard PocketBase auth fields)
+
+**Index**:
+- Unique index on `username`
+
 ### Path Mapping
 
 - Root path (`/`) maps to `path = ""` or `path = "index"` (adjust `src/lib/pocketbase.ts` as needed)
 - Nested paths like `/docs/guide` map to `path = "docs/guide"`
+- User namespace paths like `/{username}/about` map to a page owned by that user with `path = "about"`
 
 ## Runtime Behavior
 
+**Username-based Routing** (primary):
+1. **Namespace Resolution**: Route `/[username]/[...path]` looks up the user by `username` and loads pages where `owner` matches that user ID
+2. **Owner-only Visibility**: PocketBase rules enforce `owner = @request.auth.id` for all list/view/write operations, so only the owner can see and edit their pages
+3. **Profile Setup**: On registration, users are prompted to set a `username` at `/settings` and then redirect to `/{username}`
+
+**Domain-based Routing** (legacy/custom domains):
 1. **Site Resolution**: On app load, the client reads `window.location.host` and queries PocketBase for a site with matching `domain`
-2. **Page Loading**: The catch-all route `[...path]` fetches pages by `siteId` and `path` from PocketBase
+2. **Page Loading**: The catch-all route `[...path]` fetches pages by `siteId` and `path` from PocketBase where the owner matches the authenticated user
 3. **Content Rendering**: 
    - If `content_format === 'md'`, content is rendered using `marked`
    - If `content_format === 'html'`, content is rendered as-is (assumed to be sanitized)
-4. **Error Handling**: Friendly error messages for missing sites or pages
+4. **Error Handling**: Friendly error messages for missing sites or pages, or permission errors
+
+## Migrating Existing Installations
+
+If you previously deployed the domain-only version of this project, follow these steps to adopt per-user namespaces safely:
+
+1. **Add usernames**: In PocketBase, open the `users` collection and populate the new `username` field for every user. Usernames must be unique and URL safe (letters, numbers, `_`, `-`).
+2. **Assign page owners**: For each page record, copy the appropriate user ID into the required `owner` relation. Pages without an owner will now fail validation. You can use the PocketBase admin UI bulk editor or run an `update` migration script.
+3. **Optional – keep custom domains**: If you use domain-based routing, leave the `site` relation populated. Pages without `site` continue to render under the `/{username}` namespace only.
+4. **Re-import or update schema**: Import the updated `pocketbase-schema.json` or manually apply the new rules/indexes so the collection enforces uniqueness and owner-only access.
+5. **Verify rules**: Test viewing pages while logged out or as another user—you should now receive a 403/empty state thanks to the stricter `owner = @request.auth.id` rules.
+
+> Tip: run a quick PocketBase script (or use the admin UI) to backfill `owner` by matching existing pages to their intended user before enabling the new rules in production.
 
 ## CORS and Hosting
 
